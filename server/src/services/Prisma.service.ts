@@ -1,6 +1,7 @@
 import { PrismaClient } from '@generated/prisma/client';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaMssql } from '@prisma/adapter-mssql';
+import { DefaultArgs } from '@prisma/client/runtime/client';
 import sql from 'mssql';
 import { ConfigService } from './ConfigService/Config.service';
 
@@ -49,3 +50,8 @@ export class PrismaService
     await this.$connect();
   }
 }
+
+export type TX = Omit<
+  PrismaClient<never, undefined, DefaultArgs>,
+  '$connect' | '$disconnect' | '$on' | '$use' | '$extends'
+>;

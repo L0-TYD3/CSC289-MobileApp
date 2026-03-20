@@ -4,7 +4,7 @@ import { PrismaService } from './Prisma.service';
 
 @Global()
 @Module({
-  providers: [PrismaService],
+  providers: [PrismaService, AppLogger],
   exports: [PrismaService, AppLogger],
 })
 export class GlobalServicesModule {}
