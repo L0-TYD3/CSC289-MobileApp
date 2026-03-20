@@ -1,0 +1,184 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["views"]
+  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  moduleFormat    = "cjs"
+}
+
+datasource db {
+  provider = "sqlserver"
+}
+
+model Member {
+  Membership_Level String     @id @db.VarChar(50)
+  Discount_Rate    Decimal    @db.Decimal(5, 2)
+  customers        Customer[]
+}
+
+model Customer {
+  Customer_ID      Int                @id @default(autoincrement())
+  First_Name       String             @db.VarChar(50)
+  Last_Name        String             @db.VarChar(50)
+  Email            String             @unique @db.VarChar(254)
+  Phone            String?            @db.VarChar(20)
+  Membership_Level String             @db.VarChar(50)
+  Created_At       DateTime           @default(now()) @db.DateTime2
+  Updated_At       DateTime?          @db.DateTime2
+  Deleted_At       DateTime?          @db.DateTime2
+  member           Member             @relation(fields: [Membership_Level], references: [Membership_Level])
+  addresses        Customer_Address[]
+  carts            Shopping_Cart[]
+  orders           Order[]
+}
+
+model Customer_Address {
+  Address_ID      Int        @id @default(autoincrement())
+  Address_Line1   String     @db.VarChar(50)
+  Address_Line2   String?    @db.VarChar(35)
+  City            String     @db.VarChar(50)
+  State           String     @db.VarChar(50)
+  Zip_Code        String     @db.VarChar(10)
+  Country         String     @db.VarChar(50)
+  Customer_ID     Int
+  Created_At      DateTime   @default(now()) @db.DateTime2
+  Updated_At      DateTime?  @db.DateTime2
+  Deleted_At      DateTime?  @db.DateTime2
+  customer        Customer   @relation(fields: [Customer_ID], references: [Customer_ID])
+  ShippingAddress Shipping[] @relation("ShippingAddress")
+  BillingAddress  Shipping[] @relation("BillingAddress")
+}
+
+model Product_Category {
+  Category_ID          Int       @id @default(autoincrement())
+  Category_Name        String    @db.VarChar(100)
+  Category_Description String?   @db.VarChar(1000)
+  products             Product[]
+}
+
+model Product {
+  Product_ID          Int              @id @default(autoincrement())
+  Product_Name        String           @db.VarChar(100)
+  Product_Description String?          @db.VarChar(1000)
+  Category_ID         Int
+  Supplier_ID         Int
+  Image_URL           String?          @db.VarChar(255)
+  Deleted_At          DateTime?        @db.DateTime2
+  category            Product_Category @relation(fields: [Category_ID], references: [Category_ID])
+  supplier            Supplier         @relation(fields: [Supplier_ID], references: [Supplier_ID])
+  inventory           Inventory[]
+  discounts           Discount[]
+
+  @@map("[Product]")
+}
+
+model Inventory {
+  Inventory_ID Int                  @id @default(autoincrement())
+  Product_ID   Int
+  Quantity     Int
+  Unit_Price   Decimal              @db.Decimal(8, 2)
+  Deleted_At   DateTime?            @db.DateTime2
+  product      Product              @relation(fields: [Product_ID], references: [Product_ID])
+  cartItems    Shopping_Cart_Item[]
+  orderItems   Order_Item[]
+}
+
+model Shopping_Cart {
+  Cart_ID     Int                  @id @default(autoincrement())
+  Customer_ID Int
+  Session_ID  String?              @db.NVarChar(50)
+  Created_At  DateTime             @default(now()) @db.DateTime2
+  Updated_At  DateTime?            @db.DateTime2
+  customer    Customer             @relation(fields: [Customer_ID], references: [Customer_ID])
+  items       Shopping_Cart_Item[]
+}
+
+model Shopping_Cart_Item {
+  Cart_ID      Int
+  Inventory_ID Int
+  Quantity     Int
+  Created_At   DateTime      @default(now()) @db.DateTime2
+  Updated_At   DateTime?     @db.DateTime2
+  cart         Shopping_Cart @relation(fields: [Cart_ID], references: [Cart_ID])
+  inventory    Inventory     @relation(fields: [Inventory_ID], references: [Inventory_ID])
+
+  @@id([Cart_ID, Inventory_ID])
+}
+
+model Order {
+  Order_ID    Int          @id @default(autoincrement())
+  Customer_ID Int
+  Order_Date  DateTime     @default(now()) @db.DateTime2
+  customer    Customer     @relation(fields: [Customer_ID], references: [Customer_ID])
+  items       Order_Item[]
+  payment     Payment?
+  shipping    Shipping?
+  discounts   Discount[]
+
+  @@map("[Order]")
+}
+
+model Order_Item {
+  Order_ID     Int
+  Inventory_ID Int
+  Quantity     Int
+  Amount       Decimal   @db.Decimal(8, 2)
+  Tax          Decimal   @db.Decimal(8, 2)
+  Created_At   DateTime  @default(now()) @db.DateTime2
+  Updated_At   DateTime? @db.DateTime2
+  order        Order     @relation(fields: [Order_ID], references: [Order_ID])
+  inventory    Inventory @relation(fields: [Inventory_ID], references: [Inventory_ID])
+
+  @@id([Order_ID, Inventory_ID])
+}
+
+model Payment {
+  Payment_ID     Int       @id @default(autoincrement())
+  Order_ID       Int       @unique
+  Method         String    @db.VarChar(50)
+  Payment_Status String    @db.VarChar(50)
+  Created_At     DateTime  @default(now()) @db.DateTime2
+  Updated_At     DateTime? @db.DateTime2
+  order          Order     @relation(fields: [Order_ID], references: [Order_ID])
+}
+
+model Supplier {
+  Supplier_ID   Int       @id @default(autoincrement())
+  Supplier_Name String    @db.VarChar(100)
+  Contact_Name  String    @db.VarChar(100)
+  Contact_Email String    @db.VarChar(254)
+  Contact_Phone String    @db.VarChar(20)
+  products      Product[]
+}
+
+model Shipping {
+  Shipping_ID         Int              @id @default(autoincrement())
+  Order_ID            Int              @unique
+  Cost                Decimal          @db.Decimal(8, 2)
+  Shipped_On          DateTime?        @db.DateTime2
+  Expected_By         DateTime?        @db.DateTime2
+  Ship_Status         String           @db.VarChar(15)
+  Carrier             String           @db.VarChar(100)
+  Tracking_Number     String           @db.VarChar(50)
+  Created_At          DateTime         @default(now()) @db.DateTime2
+  Updated_At          DateTime?        @db.DateTime2
+  Shipping_Address_ID Int
+  Billing_Address_ID  Int
+  order               Order            @relation(fields: [Order_ID], references: [Order_ID])
+  shippingAddress     Customer_Address @relation("ShippingAddress", fields: [Shipping_Address_ID], references: [Address_ID], onDelete: NoAction, onUpdate: NoAction)
+  billingAddress      Customer_Address @relation("BillingAddress", fields: [Billing_Address_ID], references: [Address_ID], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Discount {
+  Discount_ID   Int      @id @default(autoincrement())
+  Discount_Type String   @db.VarChar(15)
+  Amount        Decimal  @db.Decimal(5, 2)
+  Start_Date    DateTime @db.Date
+  End_Date      DateTime @db.Date
+  Product_ID    Int?
+  Order_ID      Int?
+  product       Product? @relation(fields: [Product_ID], references: [Product_ID])
+  order         Order?   @relation(fields: [Order_ID], references: [Order_ID])
+
+  @@map("[Discount]")
+}
