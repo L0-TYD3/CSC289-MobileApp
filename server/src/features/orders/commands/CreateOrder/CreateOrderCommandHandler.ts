@@ -1,0 +1,154 @@
+import { TAX_RATE } from '@/constants';
+import { PrismaService, TX } from '@/services/Prisma.service';
+import { CreatedMessageResponse } from '@/types/MessageReponse.type';
+import { Order_Item, Prisma } from '@generated/prisma/client';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { PaymentMethod } from '../../dtos/PaymentMethod.dto';
+import { PaymentStatus } from '../../dtos/PaytmentStatus.enum';
+import { CreateOrderCommand } from './CreateOrderCommand';
+
+/**
+ * Handles `CreateOrderCommand` — converts a shopping cart into a confirmed order.
+ *
+ * The entire checkout flow runs inside a Prisma transaction so that either all
+ * steps succeed together or the database is left unchanged:
+ *
+ * 1. **Validate cart** — confirms the cart exists and belongs to the requesting
+ *    customer (403 if mismatched, 404 if not found).
+ * 2. **Create order** — inserts an `Order` with one `Order_Item` per cart line,
+ *    capturing the unit price and applying `TAX_RATE` at the time of purchase.
+ * 3. **Mock payment** — creates a `Payment` record with status `COMPLETED`.
+ *    In a real app this is where a payment gateway (Stripe, etc.) would be called.
+ * 4. **Clear cart** — deletes the cart (cascades to its items).
+ * 5. **Update inventory** — decrements the `Quantity` on each `Inventory` record
+ *    by the purchased amount.
+ */
+@CommandHandler(CreateOrderCommand)
+export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCommand> {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async execute(command: CreateOrderCommand): Promise<CreatedMessageResponse> {
+    const cart = await this.prisma.shopping_Cart.findUnique({
+      where: {
+        Cart_ID: command.dto.cartId,
+      },
+      include: {
+        items: {
+          include: {
+            inventory: true,
+          },
+        },
+      },
+    });
+
+    if (!cart)
+      throw new NotFoundException(
+        `Cart with id ${command.dto.cartId} not found`,
+      );
+    if (cart.Customer_ID !== command.customerId)
+      throw new ForbiddenException(
+        'You are not authorized to create an order for this cart',
+      );
+
+    const orderData: Prisma.OrderCreateInput = {
+      customer: {
+        connect: {
+          Customer_ID: command.customerId,
+        },
+      },
+      items: {
+        createMany: {
+          data: cart.items.map((i) => ({
+            Inventory_ID: i.Inventory_ID,
+            Quantity: i.Quantity,
+            Amount: i.inventory.Unit_Price,
+            Tax: i.inventory.Unit_Price?.toNumber() ?? 0 * TAX_RATE,
+            Created_At: new Date(),
+            Updated_At: new Date(),
+          })),
+        },
+      },
+    };
+
+    const transaction = await this.prisma.$transaction(async (tx) => {
+      // Create the order
+      const createdOrder = await tx.order.create({
+        data: orderData,
+        include: {
+          items: true,
+        },
+      });
+
+      // Create the payment - in a real app we would use a payment gateway and get a response but we are mocking it in this project.
+      await this.createPayment(
+        tx,
+        createdOrder.Order_ID,
+        command.dto.paymentMethod,
+      );
+
+      // Clear the shopping cart
+      await this.clearCart(tx, command.dto.cartId);
+      // Update the inventory quantites
+      await this.updateInventory(tx, createdOrder.items);
+
+      return createdOrder;
+    });
+
+    return new CreatedMessageResponse(
+      'Order created successfully',
+      transaction.Order_ID,
+    );
+  }
+
+  /**
+   * Creates a mock payment record for the order.
+   * Status is hardcoded to `COMPLETED` because this project does not integrate
+   * with a real payment gateway. Replace this with actual gateway logic when
+   * moving toward production.
+   */
+  private async createPayment(
+    tx: TX,
+    orderId: number,
+    paymentMethod: PaymentMethod,
+  ) {
+    await tx.payment.create({
+      data: {
+        Order_ID: orderId,
+        Payment_Status: PaymentStatus.COMPLETED, // Since this is a mock payment, we are just assuming it was completed.
+        Method: paymentMethod,
+        Created_At: new Date(),
+        Updated_At: new Date(),
+      },
+    });
+  }
+
+  /** Deletes the shopping cart (cascade removes all items). */
+  private async clearCart(tx: TX, cartId: number): Promise<void> {
+    await tx.shopping_Cart.delete({
+      where: {
+        Cart_ID: cartId,
+      },
+    });
+  }
+
+  /**
+   * Decrements inventory quantities for each purchased item.
+   * Runs sequentially inside the transaction — if any update fails, the whole
+   * transaction rolls back and inventory is not partially decremented.
+   */
+  private async updateInventory(tx: TX, items: Order_Item[]): Promise<void> {
+    for (const item of items) {
+      await tx.inventory.update({
+        where: {
+          Inventory_ID: item.Inventory_ID,
+        },
+        data: {
+          Quantity: {
+            decrement: item.Quantity,
+          },
+        },
+      });
+    }
+  }
+}

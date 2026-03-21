@@ -1,50 +1,115 @@
-# Welcome to your Expo app 👋
+# CSC289 Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-stack retail/e-commerce mobile application built with Expo (React Native) and NestJS. Features product browsing, shopping cart, orders, and customer management with JWT authentication.
 
-## Get started
+## Tech Stack
 
-1. Install dependencies
+- **Mobile**: Expo (React Native), NativeWind (Tailwind CSS), Expo Router, React Hook Form, Zod
+- **Backend**: NestJS, Prisma, SQL Server, CQRS, JWT, Swagger
+- **Package Manager**: pnpm (workspaces)
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- Node.js 18+
+- pnpm
+- SQL Server (or access to a remote instance)
+- iOS Simulator / Android Emulator / Expo Go (for mobile testing)
 
-   ```bash
-   npx expo start
-   ```
+## Project Structure
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+├── app/                    # Expo app (file-based routing)
+├── components/             # Shared UI components
+├── features/               # Feature modules (cart, orders, products)
+├── server/                 # NestJS API
+│   ├── prisma/             # Database schema & migrations
+│   └── src/                # API source
+└── pnpm-workspace.yaml     # Monorepo config
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-## Learn more
+### 1. Install dependencies
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+pnpm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 2. Configure the server
 
-## Join the community
+Create `server/.env` with the following variables:
 
-Join our community of developers creating universal apps.
+```env
+NODE_ENV=development
+PORT=3000
+API_URL=http://localhost:3000
+JWT_SECRET=your-secret-key
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Database (SQL Server)
+DATABASE_URL="sqlserver://HOST:PORT;database=DB_NAME;user=USER;password=PASSWORD;trustServerCertificate=true;"
+```
+
+### 3. Set up the database
+
+```bash
+cd server
+pnpm run db:generate
+pnpm run db:migrate
+```
+
+### 4. Run the application
+
+**Option A – Run both app and server together:**
+
+```bash
+pnpm run dev:concurrent
+```
+
+**Option B – Run separately:**
+
+```bash
+# Terminal 1: Start the API
+pnpm -C server run dev
+
+# Terminal 2: Start the mobile app
+pnpm run start
+```
+
+Then choose an option from the Expo CLI:
+
+- **iOS Simulator**: Press `i` in the terminal
+- **Android Emulator**: Press `a` in the terminal
+- **Expo Go**: Scan the QR code with your device
+
+## API Documentation
+
+When the server is running, Swagger UI is available at:
+
+- **Local**: http://localhost:3000/api/swagger
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm run start` | Start the Expo app |
+| `pnpm run dev:concurrent` | Run app + server together |
+| `pnpm run android` | Start Expo with Android |
+| `pnpm run ios` | Start Expo with iOS |
+| `pnpm run dev` | Alias for `expo start` |
+| `pnpm run lint` | lint the mobile app |
+| `pnpm run typecheck` | TypeScript check |
+
+**Server scripts** (run from `server/` or with `pnpm -C server run <script>`):
+
+| Command | Description |
+|---------|-------------|
+| `pnpm run dev` | Start NestJS in watch mode |
+| `pnpm run db:generate` | Generate Prisma client |
+| `pnpm run db:migrate` | Run database migrations |
+| `pnpm run db:push` | Push schema to DB (dev) |
+
+## Learn More
+
+- [Expo documentation](https://docs.expo.dev/)
+- [NestJS documentation](https://docs.nestjs.com/)
+- [Prisma documentation](https://www.prisma.io/docs)
