@@ -57,14 +57,10 @@ async function seed() {
   // ── clean up (order matters due to FK constraints) ──
   console.log('  Cleaning existing data...');
   // Purchase_Order_Item and Purchase_Order are not in Prisma schema; use raw SQL
-  await prisma.$executeRawUnsafe('DELETE FROM Purchase_Order_Item');
-  await prisma.$executeRawUnsafe('DELETE FROM Purchase_Order');
   await prisma.shipping.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.order_Item.deleteMany();
   await prisma.order.deleteMany();
-  await prisma.shopping_Cart_Item.deleteMany();
-  await prisma.shopping_Cart.deleteMany();
   await prisma.discount.deleteMany();
   await prisma.inventory.deleteMany();
   await prisma.product.deleteMany();
@@ -136,8 +132,10 @@ async function seed() {
 
   // ── 4. Customers + Addresses ──────────────────────────────────────────────────
   console.log('  Seeding customers and addresses...');
-  const customers: { Customer_ID: number; addresses: { Address_ID: number }[] }[] =
-    [];
+  const customers: {
+    Customer_ID: number;
+    addresses: { Address_ID: number }[];
+  }[] = [];
   for (let i = 0; i < 20; i++) {
     const customer = await prisma.customer.create({
       data: {
@@ -183,9 +181,7 @@ async function seed() {
         inventory: {
           create: {
             Quantity: faker.number.int({ min: 10, max: 500 }),
-            Unit_Price: parseFloat(
-              faker.commerce.price({ min: 5, max: 500 }),
-            ),
+            Unit_Price: parseFloat(faker.commerce.price({ min: 5, max: 500 })),
           },
         },
       },
@@ -208,35 +204,6 @@ async function seed() {
       Product_ID: p.Product_ID,
     })),
   });
-
-  // ── 7. Shopping Carts ─────────────────────────────────────────────────────────
-  console.log('  Seeding shopping carts...');
-  const cartCustomers = pickMultiple(customers, 10);
-  for (const customer of cartCustomers) {
-    const cartItems = pickMultiple(
-      allInventory,
-      faker.number.int({ min: 1, max: 4 }),
-    );
-    const uniqueItems = cartItems.filter(
-      (item, idx, self) =>
-        self.findIndex((i) => i.Inventory_ID === item.Inventory_ID) === idx,
-    );
-
-    await prisma.shopping_Cart.create({
-      data: {
-        Customer_ID: customer.Customer_ID,
-        Session_ID: faker.string.uuid(),
-        items: {
-          createMany: {
-            data: uniqueItems.map((inv) => ({
-              Inventory_ID: inv.Inventory_ID,
-              Quantity: faker.number.int({ min: 1, max: 5 }),
-            })),
-          },
-        },
-      },
-    });
-  }
 
   // ── 8. Orders + Items + Payment + Shipping ─────────────────────────────────────
   console.log('  Seeding orders, payments, and shipping...');
@@ -331,7 +298,6 @@ async function seed() {
     prisma.inventory.count(),
     prisma.order.count(),
     prisma.payment.count(),
-    prisma.shopping_Cart.count(),
     prisma.discount.count(),
   ]);
 
@@ -344,8 +310,7 @@ async function seed() {
   console.log(`   Inventory:      ${counts[5]}`);
   console.log(`   Orders:         ${counts[6]}`);
   console.log(`   Payments:       ${counts[7]}`);
-  console.log(`   Carts:          ${counts[8]}`);
-  console.log(`   Discounts:      ${counts[9]}`);
+  console.log(`   Discounts:      ${counts[8]}`);
 }
 
 seed()
