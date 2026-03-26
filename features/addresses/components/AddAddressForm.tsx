@@ -1,13 +1,13 @@
 import { ErrorMessage } from '@/components/ErrorMessage';
-import { ComboboxField } from '@/components/form-components/ComboboxField';
 import { formResolver } from '@/components/form-components/form-resolver';
 import { InputField } from '@/components/form-components/InputField';
 import { Button } from '@/components/ui/button';
+import { Combobox } from '@/components/ui/combobox';
 import { Text } from '@/components/ui/text';
 import useAppForm from '@/hooks/useAppForm';
 import { US_STATES } from '@/lib/usSates';
 import React from 'react';
-import { FormProvider } from 'react-hook-form';
+import { FormProvider, useWatch } from 'react-hook-form';
 import { ActivityIndicator, View } from 'react-native';
 import { z } from 'zod';
 import { useAddAddressToCurrentCustomer } from '../hooks/useAddAddressToCurrentCustomer';
@@ -44,6 +44,8 @@ export default function AddAddressForm({ customerId, onSuccess }: Props) {
       country: 'USA',
     },
   });
+
+  const stateValue = useWatch({ control: form.control, name: 'state' });
 
   const isLoading = form.formState.isSubmitting || isPending;
 
@@ -93,15 +95,13 @@ export default function AddAddressForm({ customerId, onSuccess }: Props) {
 
           <View className='flex-row gap-3'>
             <View className='flex-1'>
-              <ComboboxField<typeof schema>
-                name='state'
+              <Combobox
                 label='State'
+                items={US_STATES.map((s) => ({ label: s.label, value: s.value }))}
                 placeholder='Select a state'
-                required
-                options={US_STATES.map((state) => ({
-                  label: state.label,
-                  value: state.value,
-                }))}
+                onChange={(value) => form.setValue('state', value)}
+                value={stateValue}
+                multiple={false}
               />
             </View>
 
