@@ -1,7 +1,7 @@
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { ComboboxField } from '@/components/form-components/ComboboxField';
 import { formResolver } from '@/components/form-components/form-resolver';
 import { InputField } from '@/components/form-components/InputField';
-import { SelectField } from '@/components/form-components/SelectField';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import useAppForm from '@/hooks/useAppForm';
@@ -13,6 +13,7 @@ import { z } from 'zod';
 import { useAddAddressToCurrentCustomer } from '../hooks/useAddAddressToCurrentCustomer';
 
 const schema = z.object({
+  customerId: z.coerce.number(),
   line1: z.string().min(1, 'Address is required'),
   line2: z.string().optional(),
   city: z.string().min(1, 'City is required'),
@@ -23,12 +24,18 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function AddAddressForm() {
+type Props = {
+  customerId: number;
+  onSuccess?: () => void;
+};
+
+export default function AddAddressForm({ customerId, onSuccess }: Props) {
   const { mutate: addAddress, isPending, error } = useAddAddressToCurrentCustomer();
   const form = useAppForm<FormValues>({
     formName: 'AddAddressForm',
     resolver: formResolver(schema),
     defaultValues: {
+      customerId,
       line1: '',
       line2: '',
       city: '',
@@ -41,12 +48,17 @@ export default function AddAddressForm() {
   const isLoading = form.formState.isSubmitting || isPending;
 
   const onSubmit = async (data: FormValues) => {
-    addAddress(data, { onSuccess: () => form.reset() });
+    addAddress(data, {
+      onSuccess: () => {
+        form.reset();
+        onSuccess?.();
+      },
+    });
   };
 
   return (
     <FormProvider {...form}>
-      <View className='gap-6'>
+      <View className='gap-6 flex-1'>
         <View className='gap-1'>
           <Text className='text-xl font-semibold text-foreground'>Add Address</Text>
           <Text className='text-sm text-muted-foreground'>
@@ -81,12 +93,15 @@ export default function AddAddressForm() {
 
           <View className='flex-row gap-3'>
             <View className='flex-1'>
-              <SelectField<typeof schema>
+              <ComboboxField<typeof schema>
                 name='state'
                 label='State'
+                placeholder='Select a state'
                 required
-                placeholder='Select state'
-                options={US_STATES}
+                options={US_STATES.map((state) => ({
+                  label: state.label,
+                  value: state.value,
+                }))}
               />
             </View>
 
@@ -107,7 +122,7 @@ export default function AddAddressForm() {
           onPress={form.handleSubmit(onSubmit)}
           disabled={isLoading}
           size='lg'
-          className='w-full'
+          className='w-full mt-auto'
         >
           {isLoading ? <ActivityIndicator /> : 'Save Address'}
         </Button>

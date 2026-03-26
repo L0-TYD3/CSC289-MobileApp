@@ -1,37 +1,42 @@
 import { DataWrapper } from '@/components/DataWrapper';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
+import { useRouter } from 'expo-router';
 import { MapPin, Pencil, Trash2 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React from 'react';
 import { Alert, Pressable, View } from 'react-native';
 import { useDeleteAddressForCurrentCustomer } from '../hooks/useDeleteAddressForCurrentCustomer';
 import { useGetCurrentCustomerAddresses } from '../hooks/useGetCurrentCustomerAddresses';
 import { AddressListReponseDto } from '../types';
-import UpdateAddressForm from './UpdateAddressForm';
 
 type Props = {
   customerId: number;
 };
 
-function AddressRow({ address }: { address: AddressListReponseDto }) {
-  const [editOpen, setEditOpen] = useState(false);
+function AddressRow({
+  address,
+  customerId,
+}: {
+  address: AddressListReponseDto;
+  customerId: number;
+}) {
+  const router = useRouter();
   const { mutate: deleteAddress, isPending: isDeleting } = useDeleteAddressForCurrentCustomer();
+
+  const handleEdit = () => {
+    router.push(`/(public)/addresses/edit/${address.id}?customerId=${customerId}` as never);
+  };
 
   const handleDelete = () => {
     Alert.alert('Delete Address', 'Are you sure you want to delete this address?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => deleteAddress(address),
-      },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteAddress(address) },
     ]);
   };
 
   return (
     <Pressable
-      onLongPress={() => setEditOpen(true)}
+      onLongPress={handleEdit}
       delayLongPress={400}
       className='active:bg-muted/50 rounded-lg px-1 py-3'
     >
@@ -63,7 +68,7 @@ function AddressRow({ address }: { address: AddressListReponseDto }) {
             variant='ghost'
             size='icon'
             className='h-8 w-8'
-            onPress={() => setEditOpen(true)}
+            onPress={handleEdit}
           >
             <Pencil
               size={15}
@@ -84,19 +89,6 @@ function AddressRow({ address }: { address: AddressListReponseDto }) {
             />
           </Button>
         </View>
-
-        <Dialog
-          open={editOpen}
-          onOpenChange={setEditOpen}
-        >
-          <DialogContent
-            className='max-w-full'
-            style={{ width: '100%' }}
-          >
-            <DialogHeader></DialogHeader>
-            <UpdateAddressForm address={address} />
-          </DialogContent>
-        </Dialog>
       </View>
     </Pressable>
   );
@@ -104,16 +96,17 @@ function AddressRow({ address }: { address: AddressListReponseDto }) {
 
 export default function AddressList({ customerId }: Props) {
   const { data, isLoading, error } = useGetCurrentCustomerAddresses(customerId);
+  const router = useRouter();
 
   return (
-    <>
+    <View className='flex-1'>
       <DataWrapper
         isLoading={isLoading}
         error={error}
         data={data}
       >
         {(addresses) => (
-          <View className='overflow-hidden rounded-xl border border-border bg-card'>
+          <View className='rounded-xl border border-border bg-card'>
             {addresses.length === 0 ? (
               <View className='items-center gap-2 py-10'>
                 <MapPin
@@ -125,8 +118,11 @@ export default function AddressList({ customerId }: Props) {
             ) : (
               addresses.map((address, index) => (
                 <View key={address.id}>
-                  <View className='px-4 bg-purple-500'>
-                    <AddressRow address={address} />
+                  <View className='px-4'>
+                    <AddressRow
+                      address={address}
+                      customerId={customerId}
+                    />
                   </View>
                   {index < addresses.length - 1 && <View className='h-px bg-border mx-4' />}
                 </View>
@@ -135,6 +131,12 @@ export default function AddressList({ customerId }: Props) {
           </View>
         )}
       </DataWrapper>
-    </>
+      <Button
+        className='mt-auto w-full'
+        onPress={() => router.push(`/(public)/addresses/add?customerId=${customerId}`)}
+      >
+        Add Address
+      </Button>
+    </View>
   );
 }

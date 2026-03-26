@@ -11,16 +11,14 @@ export class DeleteAddressCommandHandler implements ICommandHandler<DeleteAddres
   async execute(
     command: DeleteAddressCommand,
   ): Promise<DeletedMessageResponse> {
-    const { customerId, addressId } = command;
+    const { addressId } = command;
 
     const existing = await this.prisma.customer_Address.findFirst({
-      where: { Address_ID: addressId, Customer_ID: customerId },
+      where: { Address_ID: addressId },
     });
 
     if (!existing)
-      throw new NotFoundException(
-        `Address ${addressId} not found for customer ${customerId}`,
-      );
+      throw new NotFoundException(`Address ${addressId} not found`);
 
     await this.prisma.customer_Address.update({
       where: { Address_ID: existing.Address_ID },

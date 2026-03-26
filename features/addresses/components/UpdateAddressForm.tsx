@@ -1,7 +1,7 @@
 import { ErrorMessage } from '@/components/ErrorMessage';
+import { ComboboxField } from '@/components/form-components/ComboboxField';
 import { formResolver } from '@/components/form-components/form-resolver';
 import { InputField } from '@/components/form-components/InputField';
-import { ComboboxField } from '@/components/form-components/ComboboxField';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import useAppForm from '@/hooks/useAppForm';
@@ -15,9 +15,11 @@ import { AddressListReponseDto } from '../types';
 
 type Props = {
   address: AddressListReponseDto;
+  onSuccess?: () => void;
 };
 
 const schema = z.object({
+  customerId: z.coerce.number(),
   line1: z.string().min(1, 'Address is required'),
   line2: z.string().optional(),
   city: z.string().min(1, 'City is required'),
@@ -28,12 +30,13 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export default function UpdateAddressForm({ address }: Props) {
+export default function UpdateAddressForm({ address, onSuccess }: Props) {
   const { mutate: updateAddress, isPending, error } = useUpdateAddressForCurrentCustomer();
   const form = useAppForm<FormValues>({
     formName: 'UpdateAddressForm',
     resolver: formResolver(schema),
     defaultValues: {
+      customerId: Number(address.customerRef.key),
       line1: address.line1,
       line2: address.line2 ?? '',
       city: address.city,
@@ -54,6 +57,7 @@ export default function UpdateAddressForm({ address }: Props) {
       {
         onSuccess: () => {
           form.reset();
+          onSuccess?.();
         },
       },
     );
@@ -61,7 +65,7 @@ export default function UpdateAddressForm({ address }: Props) {
 
   return (
     <FormProvider {...form}>
-      <View className='gap-6'>
+      <View className='flex-1 gap-6'>
         <View className='gap-1'>
           <Text className='text-xl font-semibold text-foreground'>Update Address</Text>
           <Text className='text-sm text-muted-foreground'>
@@ -99,10 +103,12 @@ export default function UpdateAddressForm({ address }: Props) {
               <ComboboxField<typeof schema>
                 name='state'
                 label='State'
+                placeholder='Select a state'
                 required
-                placeholder='Select state'
-                searchPlaceholder='Search states...'
-                options={US_STATES}
+                options={US_STATES.map((state) => ({
+                  label: state.label,
+                  value: state.value,
+                }))}
               />
             </View>
 
@@ -119,16 +125,16 @@ export default function UpdateAddressForm({ address }: Props) {
           </View>
         </View>
 
-        <ErrorMessage message={error?.message} />
-
         <Button
           onPress={form.handleSubmit(onSubmit)}
           disabled={isLoading}
           size='lg'
-          className='w-full'
+          className='w-full mt-auto'
         >
           {isLoading ? <ActivityIndicator /> : 'Save Address'}
         </Button>
+        {/* <Text className='text-center w-full text-red-500'>{error?.message}</Text> */}
+        <ErrorMessage message={error?.message} />
       </View>
     </FormProvider>
   );

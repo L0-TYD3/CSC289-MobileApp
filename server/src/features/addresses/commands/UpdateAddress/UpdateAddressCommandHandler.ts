@@ -11,16 +11,14 @@ export class UpdateAddressCommandHandler implements ICommandHandler<UpdateAddres
   async execute(
     command: UpdateAddressCommand,
   ): Promise<UpdatedMessageResponse> {
-    const { addressId, customerId, dto } = command;
+    const { addressId, dto } = command;
 
     const exisiting = await this.prisma.customer_Address.findFirst({
-      where: { Address_ID: addressId, Customer_ID: customerId },
+      where: { Address_ID: addressId },
     });
 
     if (!exisiting)
-      throw new NotFoundException(
-        `Address ${addressId} not found for customer ${customerId}`,
-      );
+      throw new NotFoundException(`Address ${addressId} not found`);
 
     await this.prisma.customer_Address.update({
       where: { Address_ID: exisiting.Address_ID },

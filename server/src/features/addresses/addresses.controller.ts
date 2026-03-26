@@ -1,4 +1,3 @@
-import { User } from '@/decorators/User.decorator';
 import {
   CreatedMessageResponse,
   DeletedMessageResponse,
@@ -24,7 +23,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthUserDto } from '../auth/types/AuthUserDto.type';
 import { AddAddressCommand } from './commands/AddAddress/AddAddressCommand';
 import { DeleteAddressCommand } from './commands/DeleteAddress/DeleteAddressCommand';
 import { UpdateAddressCommand } from './commands/UpdateAddress/UpdateAddressCommand';
@@ -55,11 +53,8 @@ export class AddressesController {
   @ApiOperation({ summary: 'Add an address for a customer' })
   @ApiBody({ type: AddAddressRequestDto, required: true })
   @ApiOkResponse({ type: CreatedMessageResponse })
-  async addAddress(
-    @Body() body: AddAddressRequestDto,
-    @User() user: AuthUserDto,
-  ) {
-    return this.commandBus.execute(new AddAddressCommand(user.id, body));
+  async addAddress(@Body() body: AddAddressRequestDto) {
+    return this.commandBus.execute(new AddAddressCommand(body));
   }
 
   @Patch(':addressId')
@@ -70,23 +65,15 @@ export class AddressesController {
   async updateAddress(
     @Param('addressId', ParseIntPipe) addressId: number,
     @Body() body: UpdateAddressRequestDto,
-    @User() user: AuthUserDto,
   ) {
-    return this.commandBus.execute(
-      new UpdateAddressCommand(user.id, addressId, body),
-    );
+    return this.commandBus.execute(new UpdateAddressCommand(addressId, body));
   }
 
   @Delete(':addressId')
   @ApiOperation({ summary: 'Soft delete an address for a customer' })
   @ApiParam({ name: 'addressId', type: Number, required: true })
   @ApiOkResponse({ type: DeletedMessageResponse })
-  async deleteAddress(
-    @Param('addressId', ParseIntPipe) addressId: number,
-    @User() user: AuthUserDto,
-  ) {
-    return this.commandBus.execute(
-      new DeleteAddressCommand(user.id, addressId),
-    );
+  async deleteAddress(@Param('addressId', ParseIntPipe) addressId: number) {
+    return this.commandBus.execute(new DeleteAddressCommand(addressId));
   }
 }

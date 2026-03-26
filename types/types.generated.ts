@@ -434,6 +434,7 @@ export interface components {
             customerRef: components["schemas"]["ObjectRef"];
         };
         AddAddressRequestDto: {
+            customerId: number;
             line1: string;
             line2?: string;
             city: string;
@@ -442,6 +443,7 @@ export interface components {
             country?: string;
         };
         UpdateAddressRequestDto: {
+            customerId?: number;
             line1?: string;
             line2?: string;
             city?: string;

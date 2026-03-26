@@ -1,4 +1,4 @@
-import { Text } from '@react-navigation/elements';
+import { Text } from '@/components/ui/text';
 
 /**
  * Displays a form field validation error message in red.
@@ -17,5 +17,6 @@ import { Text } from '@react-navigation/elements';
  */
 export function ErrorMessage({ message }: { message?: string }) {
   if (!message) return null;
-  return <Text className='text-red-500 text-sm'>{message}</Text>;
+
+  return <Text className='text-center w-full text-red-500'>{message}</Text>;
 }
