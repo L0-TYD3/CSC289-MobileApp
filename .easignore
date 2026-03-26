@@ -1,0 +1,34 @@
+# Server - not needed for mobile app build
+server/
+
+# Development tools
+.vscode/
+.claude/
+docs/
+scripts/
+
+# Dependencies (EAS installs these fresh)
+node_modules/
+.pnpm-store/
+
+# Expo cache
+.expo/
+
+# Database
+docker-compose.yaml
+schema.sql
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment files
+.env
+.env*.local
