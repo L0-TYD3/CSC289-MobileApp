@@ -1,10 +1,20 @@
-import { Text } from '@/components/ui/text';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'expo-router';
 import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const router = useRouter();
   return (
-    <View className='flex-1 items-center justify-center'>
-      <Text className='text-2xl font-bold text-blue-500'>Welcome</Text>
-    </View>
+    <SafeAreaView className='flex-1'>
+      <View className='flex-1 justify-center items-center gap-4 px-4'>
+        <Button
+          className='w-full'
+          onPress={() => router.navigate('/addresses')}
+        >
+          Addresses
+        </Button>
+      </View>
+    </SafeAreaView>
   );
 }

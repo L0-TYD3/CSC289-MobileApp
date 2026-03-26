@@ -5,6 +5,18 @@ export default function PublicLayout() {
       <Stack.Screen name='index' />
       <Stack.Screen name='login' />
       <Stack.Screen name='products' />
+      <Stack.Screen
+        name='addresses/index'
+        options={{ title: 'Addresses', headerShown: true, headerBackTitle: 'Back' }}
+      />
+      <Stack.Screen
+        name='addresses/edit/[id]'
+        options={{ title: 'Edit Address', headerShown: true, headerBackTitle: 'Back' }}
+      />
+      <Stack.Screen
+        name='addresses/add'
+        options={{ title: 'Add Address', headerShown: true, headerBackTitle: 'Back' }}
+      />
     </Stack>
   );
 }
