@@ -67,29 +67,13 @@ type Actions = {
 export const useAuthStore = create<AuthStore & Actions>((set) => ({
   ...initialState,
   initialize: async () => {
-    try {
-      // Read both values in parallel to minimise startup delay
-      const [token, userJson] = await Promise.all([
-        SecureStore.getItemAsync('token'),
-        SecureStore.getItemAsync('user'),
-      ]);
-      if (token && userJson) {
-        set({
-          token,
-          user: JSON.parse(userJson) as AppUser,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        set({
-          ...initialState,
-          isLoading: false,
-        });
-      }
-    } catch (error) {
-      // If SecureStore throws (e.g. device not encrypted), fall back to logged-out state
-      set({ ...initialState, isLoading: false });
-    }
+    // TODO: remove fake user and restore SecureStore logic when auth is implemented
+    set({
+      token: 'fake-token',
+      user: { id: 9, email: 'dev@example.com', name: 'Dev User' },
+      isAuthenticated: true,
+      isLoading: false,
+    });
   },
   setToken: async (token: string) => {
     await SecureStore.setItemAsync('token', token);

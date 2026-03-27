@@ -3,7 +3,8 @@ export default function AuthLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name='(tabs)' />
-      <Stack.Screen name='order' />
+      <Stack.Screen name='products/[id]' />
+      <Stack.Screen name='orders/[id]' />
     </Stack>
   );
 }
