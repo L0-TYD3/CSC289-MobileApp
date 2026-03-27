@@ -24,56 +24,54 @@ export function ProductCard({ product, className }: Props) {
   }).format(product.unitPrice);
 
   return (
-    <Link href={`/products/${product.productId}`} push asChild>
+    <Link
+      href={`/products/${product.productId}`}
+      push
+      asChild
+    >
       <Pressable
         className={cn('flex-1', className)}
         android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
       >
-      {({ pressed }) => (
-        <Card className={cn('gap-0 overflow-hidden py-0', pressed && 'opacity-80')}>
-          {/* Image */}
-          {product.imageUrl ? (
+        {({ pressed }) => (
+          <Card className={cn('gap-0 overflow-hidden py-0', pressed && 'opacity-80')}>
+            {/* Image */}
             <Image
               source={{ uri: product.imageUrl ?? PRODUCT_PLACEHOLDER_IMAGE_URL }}
               className='w-full h-36 bg-muted'
               resizeMode='cover'
             />
-          ) : (
-            <View className='w-full h-36 bg-muted items-center justify-center'>
-              <Text className='text-muted-foreground text-xs'>No image</Text>
+
+            {/* Content */}
+            <View className='p-3 gap-1'>
+              {/* Category */}
+              <Text
+                className='text-muted-foreground text-xs'
+                numberOfLines={1}
+              >
+                {product.category?.categoryName ?? '-'}
+              </Text>
+
+              {/* Name */}
+              <Text
+                className='font-semibold text-sm leading-snug'
+                numberOfLines={2}
+              >
+                {product.productName}
+              </Text>
+
+              {/* Price + stock row */}
+              <View className='flex-row items-center justify-between mt-1 gap-2'>
+                <Text className='font-semibold text-foreground text-sm'>{formattedPrice}</Text>
+                {!product.inStock && (
+                  <View className='bg-destructive/10 px-2 py-0.5 rounded-full'>
+                    <Text className='text-destructive text-xs'>Out of stock</Text>
+                  </View>
+                )}
+              </View>
             </View>
-          )}
-
-          {/* Content */}
-          <View className='p-3 gap-1'>
-            {/* Category */}
-            <Text
-              className='text-muted-foreground text-xs'
-              numberOfLines={1}
-            >
-              {product.category.categoryName}
-            </Text>
-
-            {/* Name */}
-            <Text
-              className='font-semibold text-sm leading-snug'
-              numberOfLines={2}
-            >
-              {product.productName}
-            </Text>
-
-            {/* Price + stock row */}
-            <View className='flex-row items-center justify-between mt-1 gap-2'>
-              <Text className='font-semibold text-foreground text-sm'>{formattedPrice}</Text>
-              {!product.inStock && (
-                <View className='bg-destructive/10 px-2 py-0.5 rounded-full'>
-                  <Text className='text-destructive text-xs'>Out of stock</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </Card>
-      )}
+          </Card>
+        )}
       </Pressable>
     </Link>
   );

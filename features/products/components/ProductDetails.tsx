@@ -1,11 +1,12 @@
 import { DataWrapper } from '@/components/DataWrapper';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { PRODUCT_PLACEHOLDER_IMAGE_URL } from '@/lib/constants';
 import { Image, ScrollView, View } from 'react-native';
-import { useProducts } from '../../hooks/useProducts';
-import { ProductDetail, ProductInventory } from '../../types';
-import { ProductHorizontalList } from '../ProductHorizontalList/ProductHorizontalList';
+import { useProducts } from '../hooks/useProducts';
+import { ProductDetail, ProductInventory } from '../types';
+import { ProductHorizontalList } from './ProductHorizontalList';
 
 export function ProductDetails({ product }: { product: ProductDetail }) {
   const { data, isLoading, error } = useProducts();
@@ -14,8 +15,8 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
 
   const getTotalQuantity = (inventory: ProductInventory[]) =>
     inventory?.reduce((sum, inv) => sum + inv.quantity, 0) ?? 0;
-  const totalQuantity = getTotalQuantity(product!.inventory);
-  const formattedPrice = getFormattedPrice(product!.lowestPrice);
+  const totalQuantity = getTotalQuantity(product.inventory);
+  const formattedPrice = getFormattedPrice(product.lowestPrice);
   return (
     <View className='flex-1'>
       <ScrollView
@@ -39,38 +40,38 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
           )}
 
           <View className='flex-1 justify-center gap-1'>
-            <Text className='text-muted-foreground text-xs'>{product!.category.categoryName}</Text>
-            <Text className='font-bold text-base leading-snug'>{product!.productName}</Text>
-            <Text className='text-muted-foreground text-sm'>Qty: {totalQuantity}</Text>
-            <Text className='font-semibold text-foreground text-base'>{formattedPrice}</Text>
+            <Text className='text-muted-foreground text-xs'>
+              {product.category?.categoryName ?? '-'}
+            </Text>
+            <Text className='font-bold text-base leading-snug'>{product.productName ?? '-'}</Text>
+            <Text className='text-muted-foreground text-sm'>Qty: {totalQuantity ?? 0}</Text>
+            <Text className='font-semibold text-foreground text-base'>{formattedPrice ?? 0}</Text>
           </View>
         </View>
 
         {/* Stock status badge */}
         <View className='flex-row'>
           {product!.inStock ? (
-            <View className='bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full'>
-              <Text className='text-green-700 dark:text-green-400 text-xs font-medium'>
-                In Stock
-              </Text>
-            </View>
+            <Badge variant={'success'}>
+              <Text>In Stock</Text>
+            </Badge>
           ) : (
-            <View className='bg-destructive/10 px-3 py-1 rounded-full'>
-              <Text className='text-destructive text-xs font-medium'>Out of Stock</Text>
-            </View>
+            <Badge variant={'destructive'}>
+              <Text>Out of Stock</Text>
+            </Badge>
           )}
         </View>
 
         {/* Description */}
         <View className='gap-1'>
           <Text className='text-foreground leading-relaxed'>
-            {product!.productDescription ?? 'No description available.'}
+            {product.productDescription ?? 'No description available.'}
           </Text>
         </View>
 
         {/* Supplier */}
         <Text className='text-muted-foreground text-xs'>
-          Supplied by {product!.supplier.supplierName}
+          Supplied by {product.supplier?.supplierName ?? '-'}
         </Text>
 
         {/* Suggested products */}
@@ -96,7 +97,8 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
       {/* Add to Cart footer */}
       <View className='px-4 pb-4 pt-2 border-t border-border'>
         <Button
-          disabled={!product!.inStock}
+          disabled={!product.inStock}
+          // TODO: Add to cart logic here
           onPress={() => {}}
         >
           Add to Cart

@@ -1,5 +1,5 @@
 import { DataWrapper } from '@/components/DataWrapper';
-import { ProductDetails } from '@/features/products/components/ProductDetails/ProductDetails';
+import { ProductDetails } from '@/features/products/components/ProductDetails';
 import { useProductDetails } from '@/features/products/hooks/useProductDetails';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';

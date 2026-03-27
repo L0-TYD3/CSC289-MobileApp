@@ -1,9 +1,9 @@
 import { SearchBar } from '@/components/SearchBar';
 import { useState } from 'react';
 import { FlatList, useWindowDimensions, View } from 'react-native';
-import { ProductListItem } from '../../types';
-import NoProductsAvailable from '../NoProductsAvailable';
-import { ProductCard } from '../ProductCard';
+import { ProductListItem } from '../types';
+import NoProductsAvailable from './NoProductsAvailable';
+import { ProductCard } from './ProductCard';
 
 interface Props {
   products: ProductListItem[];

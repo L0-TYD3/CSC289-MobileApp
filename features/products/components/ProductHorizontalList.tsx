@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { FlatList, View } from 'react-native';
-import { ProductListItem } from '../../types';
-import { ProductCard } from '../ProductCard';
+import { ProductListItem } from '../types';
+import { ProductCard } from './ProductCard';
 
 interface Props {
   products: ProductListItem[];

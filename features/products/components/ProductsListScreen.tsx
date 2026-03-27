@@ -1,8 +1,8 @@
 import { DataWrapper } from '@/components/DataWrapper';
 import NoProductsAvailable from '@/features/products/components/NoProductsAvailable';
-import { ProductGrid } from '@/features/products/components/ProductGrid/ProductGrid';
 import { useProducts } from '@/features/products/hooks/useProducts';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ProductGrid } from './ProductGrid';
 
 export default function AuthProductsScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useProducts();
