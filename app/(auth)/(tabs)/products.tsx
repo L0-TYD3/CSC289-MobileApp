@@ -1,5 +1,5 @@
 import ProductsListScreen from '@/features/products/components/ProductsListScreen';
 
-export default function ProductsScreen() {
+export default function AuthProductsScreen() {
   return <ProductsListScreen />;
 }
