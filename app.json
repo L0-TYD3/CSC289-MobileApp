@@ -29,7 +29,10 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["expo-notifications", {}],
+      [
+        "expo-notifications",
+        {}
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -42,7 +45,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
