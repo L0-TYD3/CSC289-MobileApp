@@ -4,7 +4,6 @@ import { PortalHost } from '@rn-primitives/portal';
 import { QueryClientProvider } from '@tanstack/react-query';
 // import { registerForPushNotificationsAsync } from '@/lib/notifications';
 // import Notifications from 'expo-notifications';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -37,9 +36,6 @@ export default function RootLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const router = useRouter();
   const segments = useSegments();
-  const { expoPushToken, notification } = usePushNotifications();
-
-  console.log({ expoPushToken });
 
   // Hydrate the auth store from SecureStore once on startup
   useEffect(() => {
