@@ -1,6 +1,7 @@
-import { apiClient } from '@/lib/apiClient';
-import { useQuery } from '@tanstack/react-query';
-import { orderQueryKeys } from './shared';
+import { apiClient } from "@/lib/apiClient";
+import { unwrapResponse } from "@/lib/unwrapResponse";
+import { useQuery } from "@tanstack/react-query";
+import { orderQueryKeys } from "./shared";
 
 /**
  * Fetches detailed information for a single order.
@@ -10,13 +11,12 @@ import { orderQueryKeys } from './shared';
 export const useOrder = (orderId: number | undefined) => {
   return useQuery({
     queryKey: orderQueryKeys.orderDetails(orderId!),
-    queryFn: async () => {
-      const { data, error } = await apiClient.GET('/api/orders/{orderId}', {
-        params: { path: { orderId: orderId! } },
-      });
-      if (error) throw error;
-      return data;
-    },
+    queryFn: async () =>
+      apiClient
+        .GET("/api/orders/{orderId}", {
+          params: { path: { orderId: orderId! } },
+        })
+        .then(unwrapResponse),
     enabled: !!orderId,
   });
 };
