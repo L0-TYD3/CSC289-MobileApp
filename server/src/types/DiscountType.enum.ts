@@ -1,3 +1,5 @@
+import { ValueOf } from './ValueOf';
+
 /**
  * The two ways a discount can be applied to a product or order.
  *
@@ -14,4 +16,4 @@ export const DiscountType = {
 } as const;
 
 /** Union type of all valid discount type string values. */
-export type DiscountType = (typeof DiscountType)[keyof typeof DiscountType];
+export type DiscountType = ValueOf<typeof DiscountType>;

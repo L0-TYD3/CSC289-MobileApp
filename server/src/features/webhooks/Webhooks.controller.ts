@@ -1,3 +1,4 @@
+import { Public } from '@/decorators/Public.decorator';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -15,6 +16,7 @@ export class WebhooksController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @Get('events')
+  @Public()
   @ApiOperation({ summary: 'Get a list of all webhook events' })
   @ApiOkResponse({ type: [String] })
   getEvents() {
