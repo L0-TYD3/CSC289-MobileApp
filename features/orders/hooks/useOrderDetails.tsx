@@ -8,9 +8,9 @@ import { orderQueryKeys } from "./shared";
  * Query is disabled until a valid orderId is provided.
  * Each order is cached independently by its ID.
  */
-export const useOrder = (orderId: number | undefined) => {
+export const useOrderDetails = (orderId: number) => {
   return useQuery({
-    queryKey: orderQueryKeys.orderDetails(orderId!),
+    queryKey: orderQueryKeys.orderDetails(orderId),
     queryFn: async () =>
       apiClient
         .GET("/api/orders/{orderId}", {
