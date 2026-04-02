@@ -1,3 +1,5 @@
+import { ValueOf } from '@/types/ValueOf';
+
 export const MembershipLevel = {
   REGULAR: 'REGULAR',
   SILVER: 'SILVER',
@@ -6,5 +8,4 @@ export const MembershipLevel = {
   DIAMOND: 'DIAMOND',
 } as const;
 
-export type MembershipLevel =
-  (typeof MembershipLevel)[keyof typeof MembershipLevel];
+export type MembershipLevel = ValueOf<typeof MembershipLevel>;
