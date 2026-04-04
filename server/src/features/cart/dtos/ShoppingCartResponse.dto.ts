@@ -34,8 +34,8 @@ export class CartItemProductDto {
   productDescription: string | null;
   @ApiProperty({ type: String, required: false, nullable: true })
   imageUrl: string | null;
-  categoryName: string;
   @ApiProperty({ type: String, required: true })
+  categoryName: string;
   @ApiProperty({ type: [CartItemDiscountDto], required: true })
   discounts: CartItemDiscountDto[];
 }
