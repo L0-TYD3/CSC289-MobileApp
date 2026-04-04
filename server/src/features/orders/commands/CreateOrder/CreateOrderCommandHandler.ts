@@ -1,11 +1,10 @@
 import { TAX_RATE } from '@/constants';
-import { EmitWebhookEventCommand } from '@/features/webhooks/commands/EmitWebhookEvent/EmitWebhookEventCommand';
 import { AppLogger } from '@/services/AppLogger.service';
 import { PrismaService, TX } from '@/services/Prisma.service';
 import { CreatedMessageResponse } from '@/types/MessageReponse.type';
 import { Order_Item, Prisma } from '@generated/prisma/client';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PaymentMethod } from '../../dtos/PaymentMethod.dto';
 import { PaymentStatus } from '../../dtos/PaytmentStatus.enum';
 import { CreateOrderCommand } from './CreateOrderCommand';
@@ -37,7 +36,7 @@ export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
   private readonly logger = new AppLogger(CreateOrderCommandHandler.name);
   constructor(
     private readonly prisma: PrismaService,
-    private readonly commandBus: CommandBus,
+    // private readonly commandBus: CommandBus,
   ) {}
 
   async execute(command: CreateOrderCommand): Promise<CreatedMessageResponse> {
@@ -105,7 +104,7 @@ export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
       // Update the inventory quantites
       await this.updateInventory(tx, createdOrder.items);
 
-      await this.emitWebhook(createdOrder);
+      // await this.emitWebhook(createdOrder);
 
       return createdOrder;
     });
@@ -121,38 +120,38 @@ export class CreateOrderCommandHandler implements ICommandHandler<CreateOrderCom
    * @param order - The order to emit the webhook event for.
    * @error - Fail silently so that we don't block the order creation.
    */
-  private async emitWebhook(order: DbOrder): Promise<void> {
-    try {
-      await this.commandBus.execute(
-        new EmitWebhookEventCommand({
-          event: 'order.created',
-          payload: {
-            orderId: order.Order_ID,
-            customerId: order.Customer_ID,
-            paymentMethod: order.payment?.Method as PaymentMethod,
-            totalAmount: order.items.reduce(
-              (acc, item) =>
-                acc +
-                item.Amount.toNumber() *
-                  item.Quantity *
-                  (1 + item.Tax.toNumber()),
-              0,
-            ),
-            items: order.items.map((item) => ({
-              inventoryId: item.Inventory_ID,
-              quantity: item.Quantity,
-              amount: item.Amount,
-              tax: item.Tax,
-            })),
-          },
-        }),
-      );
-    } catch (error) {
-      this.logger.error(
-        `Error emitting webhook event for order ${order.Order_ID}: ${error}`,
-      );
-    }
-  }
+  // private async emitWebhook(order: DbOrder): Promise<void> {
+  //   try {
+  //     await this.commandBus.execute(
+  //       new EmitWebhookEventCommand({
+  //         event: 'order.created',
+  //         payload: {
+  //           orderId: order.Order_ID,
+  //           customerId: order.Customer_ID,
+  //           paymentMethod: order.payment?.Method as PaymentMethod,
+  //           totalAmount: order.items.reduce(
+  //             (acc, item) =>
+  //               acc +
+  //               item.Amount.toNumber() *
+  //                 item.Quantity *
+  //                 (1 + item.Tax.toNumber()),
+  //             0,
+  //           ),
+  //           items: order.items.map((item) => ({
+  //             inventoryId: item.Inventory_ID,
+  //             quantity: item.Quantity,
+  //             amount: item.Amount,
+  //             tax: item.Tax,
+  //           })),
+  //         },
+  //       }),
+  //     );
+  //   } catch (error) {
+  //     this.logger.error(
+  //       `Error emitting webhook event for order ${order.Order_ID}: ${error}`,
+  //     );
+  //   }
+  // }
 
   /**
    * Creates a mock payment record for the order.
