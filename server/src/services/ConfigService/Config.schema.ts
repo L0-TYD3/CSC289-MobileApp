@@ -35,6 +35,11 @@ export const configSchema = z.object({
   DB_TRUST_SERVER_CERTIFICATE: z.string().transform((val) => val === 'true'),
   DB_ENCRYPT: z.string().transform((val) => val === 'true'),
   DB_TRUST_CONNECTION: z.string().transform((val) => val === 'true'),
+
+  REDIS_HOST: z.string().optional().default('localhost'),
+  REDIS_PORT: z.coerce.number().optional().default(6379),
+
+  WEBHOOK_API_KEY: z.string(),
 });
 
 /** Type-safe representation of all validated environment variables. */

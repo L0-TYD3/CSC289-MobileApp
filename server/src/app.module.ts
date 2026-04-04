@@ -40,6 +40,7 @@ import { GlobalServicesModule } from './services/GlobalServices.module';
     OrdersModule,
     ProductsModule,
     AddressesModule,
+    // WebhooksModule,
   ],
   controllers: [HealthController],
   providers: [

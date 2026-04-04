@@ -1,3 +1,5 @@
+import { ValueOf } from '@/types/ValueOf';
+
 export const ShippingStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
@@ -6,5 +8,4 @@ export const ShippingStatus = {
   CANCELLED: 'CANCELLED',
 } as const;
 
-export type ShippingStatus =
-  (typeof ShippingStatus)[keyof typeof ShippingStatus];
+export type ShippingStatus = ValueOf<typeof ShippingStatus>;
