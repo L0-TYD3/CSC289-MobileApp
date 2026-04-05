@@ -5,11 +5,14 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useGetCartQty } from '@/features/cart/hooks/useGetCartQty';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   // const theme = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
   const theme = Colors.light;
+  const { data: cartQty } = useGetCartQty();
+  const badge = cartQty && cartQty.qty > 0 ? cartQty.qty : undefined;
 
   return (
     <Tabs
@@ -38,6 +41,7 @@ export default function TabLayout() {
         name='cart'
         options={{
           title: 'Cart',
+          tabBarBadge: badge,
           tabBarIcon: ({ color }) => (
             <IconSymbol
               size={28}

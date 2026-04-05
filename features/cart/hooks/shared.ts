@@ -17,4 +17,5 @@ export const cartQueryKeys = {
    * Inherits `cart` as a prefix so invalidating the base key cascades.
    */
   cartItems: (cartId: number) => [...cartQueryKeys.cart, cartId],
+  qty: () => [...cartQueryKeys.cart, 'qty'] as const,
 };

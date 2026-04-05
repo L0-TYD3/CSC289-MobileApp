@@ -9,3 +9,5 @@ export type CartItem = components['schemas']['CartItemDto'];
 export type CartItemProduct = components['schemas']['CartItemProductDto'];
 export type AddItemToCartRequest = components['schemas']['AddItemToCartRequestDto'];
 export type UpdateItemQuantityRequest = components['schemas']['UpdateItemQuantityRequestDto'];
+export type GetCartQtyResponse = components['schemas']['GetCartQtyResponseDto'];
+export type RemoveItemFromCartRequest = components['schemas']['RemoveItemFromCartRequestDto'];

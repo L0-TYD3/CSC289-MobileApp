@@ -3,7 +3,6 @@ import {
   DeletedMessageResponse,
   UpdatedMessageResponse,
 } from '@/types/MessageReponse.type';
-import * as Prisma from '@generated/prisma/client';
 import {
   Body,
   Controller,
@@ -15,16 +14,28 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthUserDto } from '../auth/types/AuthUserDto.type';
 import { AddItemToCartCommand } from './commands/AddItemToCart/AddItemToCartCommand';
 import { DeleteCartCommand } from './commands/DeleteCart/DeleteCartCommand';
-import { RemoveItemFromCartCommand } from './commands/RemoveItemFromCart/RemoveItemFromCartCommand';
+import {
+  RemoveItemFromCartCommand,
+  RemoveItemFromCartRequestDto,
+} from './commands/RemoveItemFromCart/RemoveItemFromCartCommand';
 import { UpdateItemQuantityCommand } from './commands/UpdateItemQuantity/UpdateItemQuantityCommand';
-import { Cart } from './decorators/Cart.decorator';
 import { AddItemToCartRequestDto } from './dtos/AddItemToCartRequest.dto';
 import { ShoppingCartResponseDto } from './dtos/ShoppingCartResponse.dto';
 import { UpdateItemQuantityRequestDto } from './dtos/UpdateItemQuantityRequest.dto';
+import {
+  GetCartQtyQuery,
+  GetCartQtyResponseDto,
+} from './queries/GetCartQty/GetCartQtyQuery';
 import { GetCurrentCustomerCartQuery } from './queries/GetCurrentCustomerCart/GetCurrentCustomerCartQuery';
 
 @ApiTags('Cart')
@@ -43,6 +54,13 @@ export class CartController {
     return this.queryBus.execute(new GetCurrentCustomerCartQuery(user.id));
   }
 
+  @Get('qty')
+  @ApiOperation({ summary: 'Get cart quantity' })
+  @ApiOkResponse({ type: GetCartQtyResponseDto })
+  async getCartQty(@User() user: AuthUserDto) {
+    return this.queryBus.execute(new GetCartQtyQuery(user.id));
+  }
+
   // add item to cart POST /cart/items
   @Post('add')
   @ApiOperation({ summary: 'Add item to cart' })
@@ -50,40 +68,49 @@ export class CartController {
   @ApiOkResponse({ type: UpdatedMessageResponse })
   async addItemToCart(
     @Body() body: AddItemToCartRequestDto,
-    @Cart() cart: Prisma.Shopping_Cart,
+    @User() user: AuthUserDto,
   ) {
-    return this.commandBus.execute(new AddItemToCartCommand(cart, body));
+    return this.commandBus.execute(new AddItemToCartCommand(user.id, body));
   }
 
   // Update quantity of an item in the cart PATCH /cart/itesm/:productId
-  @Patch('items/:productId')
+  @Patch('items/:cartId')
   @ApiOperation({ summary: 'Update quantity of an item in the cart' })
   @ApiBody({ type: UpdateItemQuantityRequestDto })
   @ApiOkResponse({ type: UpdatedMessageResponse })
   async updateItemQuantity(
+    @Param('cartId', ParseIntPipe) cartId: number,
     @Body() body: UpdateItemQuantityRequestDto,
-    @Cart() cart: Prisma.Shopping_Cart,
+    @User() user: AuthUserDto,
   ) {
-    return this.commandBus.execute(new UpdateItemQuantityCommand(cart, body));
+    return this.commandBus.execute(
+      new UpdateItemQuantityCommand(cartId, user.id, body),
+    );
   }
 
   // Delete an item from the cart DELETE /cart/items/:productId
-  @Delete('items/:productId')
+  @Delete('items/:cartId')
   @ApiOperation({ summary: 'Delete an item from the cart' })
+  @ApiParam({ name: 'cartId', type: Number, required: true })
   @ApiOkResponse({ type: DeletedMessageResponse })
   async deleteItemFromCart(
-    @Param('productId', ParseIntPipe) productId: number,
-    @Cart() cart: Prisma.Shopping_Cart,
+    @Param('cartId', ParseIntPipe) cartId: number,
+    @Body() body: RemoveItemFromCartRequestDto,
+    @User() user: AuthUserDto,
   ) {
     return this.commandBus.execute(
-      new RemoveItemFromCartCommand(cart, productId),
+      new RemoveItemFromCartCommand(cartId, user.id, body),
     );
   }
   // Delete Cart DELETE /cart
-  @Delete()
+  @Delete(':cartId')
   @ApiOperation({ summary: 'Delete cart' })
   @ApiOkResponse({ type: DeletedMessageResponse })
-  async deleteCart(@Cart() cart: Prisma.Shopping_Cart) {
-    return this.commandBus.execute(new DeleteCartCommand(cart));
+  @ApiParam({ name: 'cartId', type: Number, required: true })
+  async deleteCart(
+    @Param('cartId', ParseIntPipe) cartId: number,
+    @User() user: AuthUserDto,
+  ) {
+    return this.commandBus.execute(new DeleteCartCommand(cartId, user.id));
   }
 }

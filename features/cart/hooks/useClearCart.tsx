@@ -1,4 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
+import { appToast } from '@/lib/toast';
+import { unwrapResponse } from '@/lib/unwrapResponse';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartQueryKeys } from './shared';
 
@@ -7,15 +9,23 @@ export const useClearCart = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      const { data, error } = await apiClient.DELETE('/api/cart');
-      if (error) throw error;
-      return data;
+    mutationFn: async (dto: { cartId: number }) =>
+      apiClient
+        .DELETE('/api/cart/{cartId}', {
+          params: { path: { cartId: dto.cartId } },
+        })
+        .then(unwrapResponse),
+    onError: (error) => {
+      appToast.error(error.message);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: cartQueryKeys.cart,
       });
+      await queryClient.invalidateQueries({
+        queryKey: cartQueryKeys.qty(),
+      });
+      appToast.success('Cart cleared!');
     },
   });
 };

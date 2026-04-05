@@ -8,6 +8,8 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/components/ToastConfig';
 import '../global.css';
 
 /**
@@ -74,6 +76,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <Slot />
         <PortalHost />
+        <Toast config={toastConfig} />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

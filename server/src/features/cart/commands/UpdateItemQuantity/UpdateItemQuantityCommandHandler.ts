@@ -1,6 +1,10 @@
 import { PrismaService } from '@/services/Prisma.service';
 import { UpdatedMessageResponse } from '@/types/MessageReponse.type';
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdateItemQuantityCommand } from './UpdateItemQuantityCommand';
 
@@ -21,18 +25,31 @@ export class UpdateItemQuantityCommandHandler implements ICommandHandler<UpdateI
     const cartItem = await this.prisma.shopping_Cart_Item.findUnique({
       where: {
         Cart_ID_Inventory_ID: {
-          Cart_ID: command.cart.Cart_ID,
+          Cart_ID: command.cartId,
           Inventory_ID: command.dto.inventoryId,
         },
+      },
+      include: {
+        cart: true,
+        inventory: true,
       },
     });
 
     if (!cartItem) throw new NotFoundException('Cart item not found');
+    if (cartItem.cart.Customer_ID !== command.userId)
+      throw new ForbiddenException(
+        'You are not authorized to update the quantity of this item in this cart.',
+      );
+
+    if (cartItem.inventory.Quantity - command.dto.quantity < 0)
+      throw new BadRequestException(
+        'There is not enough inventory to complete this request.',
+      );
 
     await this.prisma.shopping_Cart_Item.update({
       where: {
         Cart_ID_Inventory_ID: {
-          Cart_ID: command.cart.Cart_ID,
+          Cart_ID: command.cartId,
           Inventory_ID: command.dto.inventoryId,
         },
       },
@@ -43,7 +60,7 @@ export class UpdateItemQuantityCommandHandler implements ICommandHandler<UpdateI
 
     return new UpdatedMessageResponse(
       'Cart item quantity updated successfully',
-      cartItem.Cart_ID,
+      command.cartId,
     );
   }
 }

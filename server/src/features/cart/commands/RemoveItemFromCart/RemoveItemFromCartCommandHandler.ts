@@ -1,5 +1,6 @@
 import { PrismaService } from '@/services/Prisma.service';
 import { DeletedMessageResponse } from '@/types/MessageReponse.type';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { RemoveItemFromCartCommand } from './RemoveItemFromCartCommand';
 
@@ -17,11 +18,29 @@ export class RemoveItemFromCartCommandHandler implements ICommandHandler<RemoveI
   async execute(
     command: RemoveItemFromCartCommand,
   ): Promise<DeletedMessageResponse> {
+    const cartItem = await this.prisma.shopping_Cart_Item.findUnique({
+      where: {
+        Cart_ID_Inventory_ID: {
+          Cart_ID: command.cartId,
+          Inventory_ID: command.dto.inventoryId,
+        },
+      },
+      include: {
+        cart: true,
+      },
+    });
+
+    if (!cartItem) throw new NotFoundException('Cart item not found');
+    if (cartItem.cart.Customer_ID !== command.userId)
+      throw new ForbiddenException(
+        'You are not authorized to remove an item from this cart.',
+      );
+
     await this.prisma.shopping_Cart_Item.delete({
       where: {
         Cart_ID_Inventory_ID: {
-          Cart_ID: command.cart.Cart_ID,
-          Inventory_ID: command.inventoryId,
+          Cart_ID: command.cartId,
+          Inventory_ID: command.dto.inventoryId,
         },
       },
     });

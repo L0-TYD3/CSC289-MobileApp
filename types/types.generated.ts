@@ -82,8 +82,24 @@ export interface paths {
         get: operations["CartController_getCurrentCustomerCart"];
         put?: never;
         post?: never;
-        /** Delete cart */
-        delete: operations["CartController_deleteCart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cart/qty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get cart quantity */
+        get: operations["CartController_getCartQty"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -106,7 +122,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cart/items/{productId}": {
+    "/api/cart/items/{cartId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -122,6 +138,23 @@ export interface paths {
         head?: never;
         /** Update quantity of an item in the cart */
         patch: operations["CartController_updateItemQuantity"];
+        trace?: never;
+    };
+    "/api/cart/{cartId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete cart */
+        delete: operations["CartController_deleteCart"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/orders": {
@@ -230,57 +263,6 @@ export interface paths {
         patch: operations["AddressesController_updateAddress"];
         trace?: never;
     };
-    "/api/webhooks/events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a list of all webhook events */
-        get: operations["WebhooksController_getEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/webhooks/emit": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Emit a webhook event */
-        post: operations["WebhooksController_emit"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/webhooks/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a webhook */
-        post: operations["WebhooksController_register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -314,13 +296,23 @@ export interface components {
             phone?: string | null;
             memberDetails: components["schemas"]["CustomerMemberDetailsResponseDto"];
         };
+        CartItemDiscountDto: {
+            discountId: number;
+            /** @enum {string} */
+            discountType: "Percentage" | "Flat";
+            amount: number;
+            /** Format: date-time */
+            startDate: string;
+            /** Format: date-time */
+            endDate: string;
+        };
         CartItemProductDto: {
             productId: number;
             productName: string;
             productDescription?: string | null;
             imageUrl?: string | null;
-            discounts: string;
             categoryName: string;
+            discounts: components["schemas"]["CartItemDiscountDto"][];
         };
         CartItemDto: {
             inventoryId: number;
@@ -336,6 +328,10 @@ export interface components {
             subtotal: number;
             totalItems: number;
         };
+        GetCartQtyResponseDto: {
+            readonly cartId: number;
+            readonly qty: number;
+        };
         AddItemToCartRequestDto: {
             productId: number;
             quantity: number;
@@ -348,6 +344,10 @@ export interface components {
             };
         };
         UpdateItemQuantityRequestDto: {
+            inventoryId: number;
+            quantity: number;
+        };
+        RemoveItemFromCartRequestDto: {
             inventoryId: number;
             quantity: number;
         };
@@ -501,25 +501,6 @@ export interface components {
             state?: string;
             zipcode?: string;
             country?: string;
-        };
-        EmitEventRequestDto: {
-            /** @enum {string} */
-            event: "order.created" | "order.cancelled" | "shipping.status.updated" | "payment.failed" | "inventory.out.of.stock";
-            payload: {
-                [key: string]: unknown;
-            };
-        };
-        RegisterWebhookRequestDto: {
-            /** Format: uri */
-            url: string;
-            /** @enum {number} */
-            events: {
-                ORDER_CREATED: "order.created";
-                ORDER_CANCELLED: "order.cancelled";
-                SHIPPING_STATUS_UPDATED: "shipping.status.updated";
-                PAYMENT_FAILED: "payment.failed";
-                INVENTORY_OUT_OF_STOCK: "inventory.out.of.stock";
-            };
         };
     };
     responses: never;
@@ -877,7 +858,7 @@ export interface operations {
             };
         };
     };
-    CartController_deleteCart: {
+    CartController_getCartQty: {
         parameters: {
             query?: never;
             header?: never;
@@ -891,7 +872,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeletedMessageResponse"];
+                    "application/json": components["schemas"]["GetCartQtyResponseDto"];
                 };
             };
             400: {
@@ -1028,11 +1009,15 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                productId: number;
+                cartId: number;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveItemFromCartRequestDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -1096,7 +1081,9 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                cartId: number;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -1111,6 +1098,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UpdatedMessageResponse"];
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestException"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnauthorizedException"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForbiddenException"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotFoundException"];
+                };
+            };
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConflictException"];
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorException"];
+                };
+            };
+        };
+    };
+    CartController_deleteCart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cartId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedMessageResponse"];
                 };
             };
             400: {
@@ -1820,211 +1876,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UpdatedMessageResponse"];
                 };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestException"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ForbiddenException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
-                };
-            };
-        };
-    };
-    WebhooksController_getEvents: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": string[];
-                };
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestException"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ForbiddenException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
-                };
-            };
-        };
-    };
-    WebhooksController_emit: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EmitEventRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestException"];
-                };
-            };
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UnauthorizedException"];
-                };
-            };
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ForbiddenException"];
-                };
-            };
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["NotFoundException"];
-                };
-            };
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ConflictException"];
-                };
-            };
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InternalServerErrorException"];
-                };
-            };
-        };
-    };
-    WebhooksController_register: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterWebhookRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             400: {
                 headers: {
