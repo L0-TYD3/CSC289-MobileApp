@@ -2,8 +2,9 @@ import { DataWrapper } from '@/components/DataWrapper';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useAddToCart } from '@/features/cart/hooks/useAddToCart';
 import { PRODUCT_PLACEHOLDER_IMAGE_URL } from '@/lib/constants';
-import { Image, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, View } from 'react-native';
 import { useProducts } from '../hooks/useProducts';
 import { ProductDetail, ProductInventory } from '../types';
 import { ProductHorizontalList } from './ProductHorizontalList';
@@ -95,15 +96,36 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
       </ScrollView>
 
       {/* Add to Cart footer */}
-      <View className='px-4 pb-4 pt-2 border-t border-border'>
+      <AddToCartButton product={product} />
+    </View>
+  );
+}
+
+function AddToCartButton({
+  product,
+  button,
+}: {
+  product: ProductDetail;
+  button?: React.ReactElement;
+}) {
+  const { mutate: addToCart, isPending } = useAddToCart();
+  return (
+    <View className='px-4 pb-4 pt-2 border-t border-border'>
+      {button ?? (
         <Button
-          disabled={!product.inStock}
-          // TODO: Add to cart logic here
-          onPress={() => {}}
+          disabled={!product.inStock || isPending}
+          onPress={() => addToCart({ productId: product.productId, quantity: 1 })}
         >
-          Add to Cart
+          {isPending ? (
+            <ActivityIndicator
+              size='small'
+              color='white'
+            />
+          ) : (
+            <Text>Add to Cart</Text>
+          )}
         </Button>
-      </View>
+      )}
     </View>
   );
 }

@@ -4,11 +4,13 @@ import { AddItemToCartCommandHandler } from './commands/AddItemToCart/AddItemToC
 import { DeleteCartCommandHandler } from './commands/DeleteCart/DeleteCartCommandHandler';
 import { RemoveItemFromCartCommandHandler } from './commands/RemoveItemFromCart/RemoveItemFromCartCommandHandler';
 import { UpdateItemQuantityCommandHandler } from './commands/UpdateItemQuantity/UpdateItemQuantityCommandHandler';
+import { GetCartQtyQueryHandler } from './queries/GetCartQty/GetCartQtyQueryHandler';
 import { GetCurrentCustomerCartQueryHandler } from './queries/GetCurrentCustomerCart/GetCurrentCustomerCartQueryHandler';
 
 @Module({
   providers: [
     GetCurrentCustomerCartQueryHandler,
+    GetCartQtyQueryHandler,
     AddItemToCartCommandHandler,
     UpdateItemQuantityCommandHandler,
     RemoveItemFromCartCommandHandler,

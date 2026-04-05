@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import { appToast } from '@/lib/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type AddItemToCartRequest } from '../types';
 import { cartQueryKeys } from './shared';
@@ -15,10 +16,17 @@ export const useAddToCart = () => {
       if (error) throw error;
       return data;
     },
+    onError: (error) => {
+      appToast.error(error.message);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: cartQueryKeys.cart,
       });
+      await queryClient.invalidateQueries({
+        queryKey: cartQueryKeys.qty(),
+      });
+      appToast.success('Added!');
     },
   });
 };

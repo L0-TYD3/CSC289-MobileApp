@@ -16,15 +16,16 @@ export class DeleteCartCommandHandler implements ICommandHandler<DeleteCartComma
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(command: DeleteCartCommand): Promise<DeletedMessageResponse> {
-    await this.prisma.shopping_Cart.delete({
+    await this.prisma.shopping_Cart.deleteMany({
       where: {
-        Cart_ID: command.cart.Cart_ID,
+        Cart_ID: command.cartId,
+        Customer_ID: command.userId,
       },
     });
 
     return new DeletedMessageResponse(
       'Cart deleted successfully',
-      command.cart.Cart_ID,
+      command.cartId,
     );
   }
 }
