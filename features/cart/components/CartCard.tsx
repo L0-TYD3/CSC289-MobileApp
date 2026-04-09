@@ -5,17 +5,20 @@ import { cn } from '@/lib/utils';
 import { Link } from 'expo-router';
 import { Image, Pressable, View } from 'react-native';
 import { CartItem } from '../types';
+import { QuantityAdjustor } from './QuantityAdjustor';
 
 interface Props {
   cartItem: CartItem;
+  cartId: number;
   itemCount?: number;
 }
 
-export function CartCard({ cartItem, itemCount }: Props) {
+export function CartCard({ cartItem, cartId, itemCount }: Props) {
+  const lineTotal = cartItem.unitPrice * cartItem.quantity;
   const formattedPrice = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
-  }).format(cartItem.unitPrice);
+  }).format(lineTotal);
 
   return (
     <Link
@@ -41,19 +44,7 @@ export function CartCard({ cartItem, itemCount }: Props) {
               </Text>
 
               {/* Quantity adjustor */}
-              <View className='flex-row items-center justify-center h-10 rounded-full bg-slate-200 px-3 gap-5'>
-                <Pressable className='h-8 w-8 items-center justify-center rounded-full bg-slate-500' 
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                android_ripple={{ color: 'rgba(0,0,0,0.05)' }}>
-                  <Text className='text-lg font-bold text-white'>-</Text>
-                </Pressable>
-                <Text>{cartItem.quantity}</Text>
-                <Pressable className='h-8 w-8 items-center justify-center rounded-full bg-slate-500' 
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                android_ripple={{ color: 'rgba(0,0,0,0.05)' }}>
-                  <Text className='text-lg font-bold text-white'>+</Text>
-                </Pressable>
-              </View>
+              <QuantityAdjustor cartItem={cartItem} cartId={cartId} />
               
               {/* Price */}
               <Text className='text-muted-foreground text-lg'>
@@ -67,3 +58,4 @@ export function CartCard({ cartItem, itemCount }: Props) {
     </Link>
   );
 }
+
