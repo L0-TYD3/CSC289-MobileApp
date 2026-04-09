@@ -59,7 +59,7 @@ export class GetCurrentCustomerCartQueryHandler implements IQueryHandler<GetCurr
       cartId: cart.Cart_ID,
       customerId: cart.Customer_ID,
       items: cart.items.map((item) => {
-        const unitPrice = Number(item.inventory.Unit_Price);
+        const unitPrice = item.inventory?.Unit_Price ? Number(item.inventory.Unit_Price) : 0;
         const lineTotal = unitPrice * item.Quantity;
 
         return {
@@ -68,12 +68,12 @@ export class GetCurrentCustomerCartQueryHandler implements IQueryHandler<GetCurr
           unitPrice,
           lineTotal,
           product: {
-            productId: item.inventory.product.Product_ID,
-            productName: item.inventory.product.Product_Name,
-            productDescription: item.inventory.product.Product_Description,
-            imageUrl: item.inventory.product.Image_URL,
-            categoryName: item.inventory.product.category?.Category_Name ?? '-',
-            discounts: item.inventory.product.discounts.map((d) => ({
+            productId: item.inventory?.product.Product_ID,
+            productName: item.inventory?.product.Product_Name,
+            productDescription: item.inventory?.product.Product_Description,
+            imageUrl: item.inventory?.product.Image_URL,
+            categoryName: item.inventory?.product.category?.Category_Name ?? '-',
+            discounts: (item.inventory?.product.discounts || []).map((d) => ({
               discountId: d.Discount_ID,
               discountType: d.Discount_Type as 'Percentage' | 'Flat',
               amount: Number(d.Amount),
@@ -84,7 +84,8 @@ export class GetCurrentCustomerCartQueryHandler implements IQueryHandler<GetCurr
         };
       }),
       subtotal: cart.items.reduce((sum, item) => {
-        return sum + Number(item.inventory.Unit_Price) * item.Quantity;
+        const unitPrice = item.inventory?.Unit_Price ? Number(item.inventory.Unit_Price) : 0;
+        return sum + unitPrice * item.Quantity;
       }, 0),
       totalItems: cart.items.reduce((sum, item) => sum + item.Quantity, 0),
     };
