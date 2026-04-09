@@ -22,7 +22,7 @@ export function QuantityAdjustor({ cartItem, cartId }: Props) {
       return;
     }
 
-    const inventory = product.inventory.find(inv => inv.inventoryId === cartItem.inventoryId);
+    const inventory = product.inventory.find((inv) => inv.inventoryId === cartItem.inventoryId);
     if (!inventory) {
       console.error('Inventory not found for cart item');
       return;
@@ -35,13 +35,14 @@ export function QuantityAdjustor({ cartItem, cartId }: Props) {
       // Remove item from cart
       removeCartItem.mutate({
         cartId,
-        dto: { inventoryId: cartItem.inventoryId, quantity: cartItem.quantity }
+        dto: { inventoryId: cartItem.inventoryId, quantity: cartItem.quantity },
       });
     } else {
       // Update quantity
       updateCartItem.mutate({
         cartId,
-        dto: { inventoryId: cartItem.inventoryId, quantity: newQuantity }
+        original: cartItem,
+        dto: { inventoryId: cartItem.inventoryId, quantity: newQuantity },
       });
     }
   };
