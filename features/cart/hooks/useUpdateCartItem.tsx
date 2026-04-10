@@ -1,9 +1,8 @@
 import { apiClient } from '@/lib/apiClient';
-import { handleOptimisticError, handleOptimisticUpdateGuarded } from '@/lib/optimistic-updates';
 import { appToast } from '@/lib/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CartItem, type UpdateItemQuantityRequest } from '../types';
-import { Actions, cartQueryKeys } from './shared';
+import { CartItem, ShoppingCart, type UpdateItemQuantityRequest } from '../types';
+import { cartQueryKeys } from './shared';
 
 /** Updates the quantity of an item in the cart. Invalidates cart cache on success. */
 export const useUpdateCartItem = () => {
@@ -22,29 +21,25 @@ export const useUpdateCartItem = () => {
       if (error) throw error;
       return data;
     },
-    onMutate: (payload) => {
-      return handleOptimisticUpdateGuarded(
-        queryClient,
-        cartQueryKeys.cart,
-        Actions.update({
-          ...payload.original,
-          inventoryId: payload.dto.inventoryId,
-          quantity: payload.dto.quantity,
-        }),
-      );
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: cartQueryKeys.cart });
+      const prevData = queryClient.getQueryData<ShoppingCart>(cartQueryKeys.cart);
+      if (!prevData) return { prevData: null };
+
+      const updatedData = {
+        ...prevData,
+        items: prevData.items.map((i) =>
+          i.inventoryId === payload.dto.inventoryId ? { ...i, quantity: payload.dto.quantity } : i,
+        ),
+      };
+      queryClient.setQueryData(cartQueryKeys.cart, updatedData);
+      return { prevData };
     },
     onError: (error, _, ctx) => {
-      handleOptimisticError(queryClient, ctx?.prevData);
+      if (ctx?.prevData) {
+        queryClient.setQueryData(cartQueryKeys.cart, ctx.prevData);
+      }
       appToast.error(error.message);
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: cartQueryKeys.cart,
-      });
-      await queryClient.invalidateQueries({
-        queryKey: cartQueryKeys.qty(),
-      });
-      appToast.success('Item quantity updated!');
     },
   });
 };

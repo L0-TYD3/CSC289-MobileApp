@@ -1,5 +1,6 @@
 import { DataWrapper } from '@/components/DataWrapper';
 import { Text } from '@/components/ui/text';
+import { useState } from 'react';
 import { Button, FlatList, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCart } from '../hooks/useCart';
@@ -8,7 +9,14 @@ import { CartCard } from './CartCard';
 import NoCartItemsAvailable from './NoCartItemsAvailable';
 
 export default function CartOverviewScreen() {
-  const { data, isLoading, error, refetch, isRefetching, dataUpdatedAt } = useCart();
+  const { data, isLoading, error, refetch, dataUpdatedAt } = useCart();
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsManualRefreshing(true);
+    await refetch();
+    setIsManualRefreshing(false);
+  };
   const totalPrice =
     data?.items.reduce((total, item) => total + item.unitPrice * item.quantity, 0) ?? 0;
 
@@ -38,8 +46,8 @@ export default function CartOverviewScreen() {
                   />
                 ) : null
               }
-              refreshing={isRefetching}
-              onRefresh={refetch}
+              refreshing={isManualRefreshing}
+              onRefresh={handleRefresh}
               showsVerticalScrollIndicator={false}
               ListHeaderComponent={
                 <View className='mb-1'>

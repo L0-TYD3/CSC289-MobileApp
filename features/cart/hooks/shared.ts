@@ -1,6 +1,3 @@
-import { ActionFactory } from '@/lib/optimistic-updates';
-import { CartItem } from '../types';
-
 /**
  * Centralised React Query cache keys for the cart feature.
  *
@@ -22,5 +19,3 @@ export const cartQueryKeys = {
   cartItems: (cartId: number) => [...cartQueryKeys.cart, cartId],
   qty: () => [...cartQueryKeys.cart, 'qty'] as const,
 };
-
-export const Actions = ActionFactory<CartItem, 'inventoryId'>('inventoryId');

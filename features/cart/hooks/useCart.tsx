@@ -1,20 +1,14 @@
 import { apiClient } from '@/lib/apiClient';
+import { unwrapResponse } from '@/lib/unwrapResponse';
+import { QueryOptions } from '@/types/QueryOptions';
 import { useQuery } from '@tanstack/react-query';
+import { ShoppingCart } from '../types';
 import { cartQueryKeys } from './shared';
 
 /** Fetches the current user's shopping cart. */
-export const useCart = () => {
+export const useCart = (options?: QueryOptions<ShoppingCart>) => {
   return useQuery({
     queryKey: cartQueryKeys.cart,
-    queryFn: async () => {
-      const { data, error } = await apiClient.GET('/api/cart');
-      if (error) throw error;
-      if (data == null) {
-        throw new Error('Cart response was empty');
-      }
-      return data;
-    },
-    /** Keep showing the last cart while refetching so the list does not blank after mutations. */
-    placeholderData: (previousData) => previousData,
+    queryFn: async () => apiClient.GET('/api/cart').then(unwrapResponse),
   });
 };
