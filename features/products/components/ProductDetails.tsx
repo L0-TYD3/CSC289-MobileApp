@@ -114,7 +114,12 @@ function AddToCartButton({
       {button ?? (
         <Button
           disabled={!product.inStock || isPending}
-          onPress={() => addToCart({ productId: product.productId, quantity: 1 })}
+          onPress={() =>
+            addToCart({
+              product,
+              quantity: 1,
+            })
+          }
         >
           {isPending ? (
             <ActivityIndicator
