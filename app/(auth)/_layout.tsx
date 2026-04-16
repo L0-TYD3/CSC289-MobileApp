@@ -1,5 +1,10 @@
+import { useNotificationSetup } from "@/features/notifications/hooks/useNotificationSetup";
 import { Stack } from "expo-router";
+
 export default function AuthLayout() {
+  /** Register device for push notifications once the user is authenticated. */
+  useNotificationSetup();
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
@@ -47,7 +52,6 @@ export default function AuthLayout() {
           headerBackTitle: "Back",
         }}
       />
-      
     </Stack>
   );
 }
