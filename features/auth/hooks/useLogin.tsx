@@ -15,14 +15,12 @@ export const useLogin = () => {
       const { accessToken } = await apiClient
         .POST('/api/auth/login', { body: payload })
         .then(unwrapResponse);
+      await setToken(accessToken);
       const user = await apiClient.GET('/api/auth/me').then(unwrapResponse);
-      return {
-        token: accessToken,
-        user,
-      };
+      return { token: accessToken, user };
     },
-    onSuccess: async ({ token, user }) => {
-      await Promise.all([setToken(token), setUser(user), setIsAuthenticated(true)]);
+    onSuccess: async ({ user }) => {
+      await Promise.all([setUser(user), setIsAuthenticated(true)]);
     },
     onError: (error) => {
       console.error(error);
