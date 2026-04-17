@@ -1,5 +1,5 @@
 import { queryClient } from '@/lib/queryClient';
-import SecureStore from 'expo-secure-store';
+import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { AppUser } from './types';
 
