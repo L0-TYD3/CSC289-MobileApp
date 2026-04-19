@@ -2,6 +2,12 @@ import { AppLogger } from '@/services/AppLogger.service';
 import { Injectable } from '@nestjs/common';
 import { RegisterPushTokenCommandHandler } from '../commands/RegisterPushToken/RegisterPushTokenCommandHandler';
 
+// --- Expo activation site 1 of 3: import ---
+// Uncomment this import together with sites 2 (class field) and 3 (send logic
+// in sendToCustomer) once `npm install expo-server-sdk` has been run. All
+// three sites must be uncommented together or the file will not compile.
+// import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+
 /**
  * Sends push notifications to customers via the Expo Push API.
  *
@@ -24,6 +30,12 @@ import { RegisterPushTokenCommandHandler } from '../commands/RegisterPushToken/R
 @Injectable()
 export class ExpoPushService {
   private readonly logger = new AppLogger(ExpoPushService.name);
+
+  // --- Expo activation site 2 of 3: class field ---
+  // Uncomment this field together with sites 1 (import) and 3 (send logic in
+  // sendToCustomer) once `npm install expo-server-sdk` has been run. All three
+  // sites must be uncommented together or the file will not compile.
+  // private readonly expo = new Expo();
 
   /**
    * Fire-and-forget send to one customer's registered device. Errors are
@@ -59,11 +71,11 @@ export class ExpoPushService {
       `[push:stub] → customer ${customerId}: title="${title}" body="${body}" data=${JSON.stringify(data ?? {})}`,
     );
 
-    // --- Real send (requires: npm install expo-server-sdk) ---
-    // Replace the stub log above with this block once the dependency is present.
-    //
-    // import { Expo, ExpoPushMessage } from 'expo-server-sdk';
-    // private readonly expo = new Expo();
+    // --- Expo activation site 3 of 3: send logic ---
+    // Uncomment this block together with sites 1 (import) and 2 (class field)
+    // once `npm install expo-server-sdk` has been run, and remove the stub log
+    // above. All three sites must be uncommented together or the file will not
+    // compile.
     //
     // try {
     //   const messages: ExpoPushMessage[] = [
