@@ -57,10 +57,16 @@ export default function RootLayout() {
   useEffect(() => {
     if (isLoading) return; // Wait until we've read from SecureStore
     const inAuthGroup = (segments[0] as string) === '(auth)';
+    const secondSegment = segments[1] as string | undefined;
     if (!isAuthenticated && inAuthGroup) {
       // User is not logged in but tried to access a protected screen
       router.replace('/login');
-    } else if (!isAuthenticated && !inAuthGroup && segments[1] !== 'login' && segments[1] !== 'register') {
+    } else if (
+      !isAuthenticated &&
+      !inAuthGroup &&
+      secondSegment !== 'login' &&
+      secondSegment !== 'register'
+    ) {
       // User is not logged in and not on a public auth screen — send them to login
       router.replace('/login');
     } else if (isAuthenticated && !inAuthGroup) {
