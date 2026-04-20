@@ -15,7 +15,10 @@ export default function AccountScreen() {
   const logout = useAuthStore((state) => state.logout);
 
   return (
-    <SafeAreaView className='flex-1 bg-background'>
+    <SafeAreaView
+      className='flex-1 bg-background'
+      edges={['left', 'right', 'bottom']}
+    >
       <View className='flex-1 px-4 pt-6 gap-4'>
         <Text variant='h3'>My Account</Text>
 
