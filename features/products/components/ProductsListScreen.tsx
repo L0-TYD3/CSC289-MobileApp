@@ -4,10 +4,13 @@ import { useProducts } from '@/features/products/hooks/useProducts';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductGrid } from './ProductGrid';
 
-export default function AuthProductsScreen() {
+export default function ProductsListScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useProducts();
   return (
-    <SafeAreaView className='flex-1 bg-background'>
+    <SafeAreaView
+      className='flex-1 bg-background'
+      edges={['left', 'right', 'bottom']}
+    >
       <DataWrapper
         data={data}
         isLoading={isLoading}

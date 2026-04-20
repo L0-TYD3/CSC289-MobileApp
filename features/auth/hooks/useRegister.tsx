@@ -3,17 +3,17 @@ import { appToast } from '@/lib/toast';
 import { unwrapResponse } from '@/lib/unwrapResponse';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../store';
-import { LoginUserPayload } from '../types';
+import { RegisterUserPayload } from '../types';
 
-export const useLogin = () => {
+export const useRegister = () => {
   const setToken = useAuthStore((state) => state.setToken);
   const setUser = useAuthStore((state) => state.setUser);
   const setIsAuthenticated = useAuthStore((state) => state.setIsAuthenticated);
 
   return useMutation({
-    mutationFn: async (payload: LoginUserPayload) => {
+    mutationFn: async (payload: RegisterUserPayload) => {
       const { accessToken } = await apiClient
-        .POST('/api/auth/login', { body: payload })
+        .POST('/api/auth/register', { body: payload })
         .then(unwrapResponse);
       await setToken(accessToken);
       const user = await apiClient.GET('/api/auth/me').then(unwrapResponse);
