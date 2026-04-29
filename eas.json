@@ -14,7 +14,7 @@
         "simulator": true
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "__PLACEHOLDER_DEV_API_URL__"
+        "EXPO_PUBLIC_API_URL": "https://mobile.csc-289-760b.org/"
       }
     },
     "preview": {
@@ -23,7 +23,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "__PLACEHOLDER_PREVIEW_API_URL__"
+        "EXPO_PUBLIC_API_URL": "https://mobile.csc-289-760b.org/"
       }
     },
     "production": {
@@ -32,7 +32,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "__PLACEHOLDER_PROD_API_URL__"
+        "EXPO_PUBLIC_API_URL": "https://mobile.csc-289-760b.org/"
       }
     }
   },
