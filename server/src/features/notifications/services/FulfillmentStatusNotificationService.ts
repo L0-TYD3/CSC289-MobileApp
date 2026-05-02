@@ -1,9 +1,8 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { AppLogger } from '@/services/AppLogger.service';
 import { PrismaService } from '@/services/Prisma.service';
+import { Injectable } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ExpoPushService } from './ExpoPushService';
-
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Transitions that fire a push notification.
@@ -15,7 +14,10 @@ const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
  * silent because Pending is the default and customers don't need to be
  * told their brand new order is pending).
  */
-const NOTIFY_ON_STATUSES: Record<string, { title: string; body: (orderId: number) => string }> = {
+const NOTIFY_ON_STATUSES: Record<
+  string,
+  { title: string; body: (orderId: number) => string }
+> = {
   Processing: {
     title: 'Order update',
     body: (orderId) => `Your order #${orderId} is being prepared.`,
@@ -36,7 +38,7 @@ const NOTIFY_ON_STATUSES: Record<string, { title: string; body: (orderId: number
 
 /**
  * Polls the Order table for Fulfillment_Status changes on a 5-minute
- * interval and fires a push notification to the owning customer when
+ * cron schedule and fires a push notification to the owning customer when
  * specific transitions are detected.
  *
  * Change detection uses an in-memory Map cache keyed by Order_ID. The
@@ -48,44 +50,37 @@ const NOTIFY_ON_STATUSES: Record<string, { title: string; body: (orderId: number
  * Java app.
  */
 @Injectable()
-export class FulfillmentStatusNotificationService
-  implements OnModuleInit, OnModuleDestroy
-{
-  private readonly logger = new AppLogger(FulfillmentStatusNotificationService.name);
+export class FulfillmentStatusNotificationService {
+  private readonly logger = new AppLogger(
+    FulfillmentStatusNotificationService.name,
+  );
   private readonly lastKnownStatus = new Map<number, string>();
-  private intervalId: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly expoPush: ExpoPushService,
   ) {}
 
-  async onModuleInit() {
-    // Silent first scan — populate the cache without firing any pushes.
-    this.logger.log('Starting silent first scan of Order.Fulfillment_Status');
-    await this.scan(false);
-    this.logger.log(
-      `Initial cache populated with ${this.lastKnownStatus.size} orders`,
-    );
+  // async onModuleInit() {
+  //   // Silent first scan — populate the cache without firing any pushes.
+  //   this.logger.log('Starting silent first scan of Order.Fulfillment_Status');
+  //   await this.scan(false);
+  //   this.logger.log(
+  //     `Initial cache populated with ${this.lastKnownStatus.size} orders`,
+  //   );
+  //   this.logger.log(
+  //     `Fulfillment status polling scheduled (${CronExpression.EVERY_5_MINUTES})`,
+  //   );
+  // }
 
-    // Begin regular polling. Errors inside scan are caught there, but we
-    // also guard here in case the promise itself rejects unexpectedly.
-    this.intervalId = setInterval(() => {
-      this.scan(true).catch((err) => {
-        this.logger.error('Polling scan failed', err);
-      });
-    }, POLL_INTERVAL_MS);
-
-    this.logger.log(
-      `Fulfillment status polling started (interval: ${POLL_INTERVAL_MS}ms)`,
-    );
-  }
-
-  onModuleDestroy() {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-      this.logger.log('Fulfillment status polling stopped');
+  @Cron(CronExpression.EVERY_5_MINUTES, {
+    disabled: true,
+  })
+  async pollFulfillmentStatus(): Promise<void> {
+    try {
+      await this.scan(true);
+    } catch (err) {
+      this.logger.error('Polling scan failed', err);
     }
   }
 

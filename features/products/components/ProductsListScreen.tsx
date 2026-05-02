@@ -8,14 +8,15 @@ export default function ProductsListScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useProducts();
   return (
     <SafeAreaView
-      className='flex-1 bg-background'
-      edges={['left', 'right', 'bottom']}
+      className='flex-1 bg-background pb-2'
+      edges={['left', 'right']}
     >
       <DataWrapper
         data={data}
         isLoading={isLoading}
         error={error}
         noDataComponent={<NoProductsAvailable />}
+        refetch={refetch}
       >
         {(products) => (
           <ProductGrid

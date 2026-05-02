@@ -1,4 +1,4 @@
-import z from "zod";
+import z from 'zod';
 
 /**
  * Zod schema that declares every environment variable the app requires.
@@ -26,6 +26,4 @@ const envSchema = z.object({
  * import { env } from '@/lib/env';
  * console.log(env.EXPO_PUBLIC_API_URL);
  */
-export const env = envSchema.parse({
-  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
-});
+export const env = envSchema.parse({ EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL });
